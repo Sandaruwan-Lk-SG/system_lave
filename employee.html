@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="si"><head>
+<html lang="si">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>EMPLOYEE</title>
 <link rel="stylesheet" href="main.css?v=final">
-</head><body>
+</head>
+<body>
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -17,41 +19,46 @@
     </div>
   </div>
 </header>
+
 <div class="container">
-<div class="tabs">
-  <button class="tab active" id="tabNew">Request</button>
-  <button class="tab" id="tabMine">My Requests</button>
-  <button class="tab" id="tabNot">Notifications</button>
-</div>
-
-<section class="card" id="pNew" style="margin-top:12px">
-  <h3>Short Leave Request</h3>
-  <div class="filters" style="grid-template-columns:repeat(5,minmax(0,1fr))">
-    <div><label>Date</label><input id="date" type="date"></div>
-    <div><label>OUT</label><input id="out_time" type="time"></div>
-    <div><label>IN</label><input id="in_time" type="time"></div>
-    <div class="span2"><label>Note</label><input id="note" type="text" placeholder="හේතුව"></div>
-    <div><button class="btn primary" onclick="submitReq()">Submit</button></div>
+  <div class="tabs">
+    <button class="tab active" id="tabNew">Request</button>
+    <button class="tab" id="tabMine">My Requests</button>
+    <button class="tab" id="tabNot">Notifications</button>
   </div>
-</section>
 
-<section class="card" id="pMine" style="display:none;margin-top:12px">
-  <div class="row"><h3>මගේ ඉල්ලීම්</h3><span class="muted" id="mineUpdated"></span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Date</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody id="mineBody"></tbody>
-  </table></div>
-  <div class="cardlist" id="mineCards"></div>
-</section>
+  <section class="card" id="pNew" style="margin-top:12px">
+    <h3>Short Leave Request</h3>
+    <div class="filters" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+      <div><label>Date</label><input id="date" type="date"></div>
+      <div><label>OUT</label><input id="out_time" type="time"></div>
+      <div><label>IN</label><input id="in_time" type="time"></div>
+      <div class="span2"><label>Note</label><input id="note" type="text" placeholder="හේතුව"></div>
+      <div><button class="btn primary" onclick="submitReq()">Submit</button></div>
+    </div>
+  </section>
 
-<section class="card" id="pNot" style="display:none;margin-top:12px">
-  <div class="row"><h3>Notifications</h3><span class="muted" id="notUpdated"></span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Time</th><th>Message</th><th></th></tr></thead>
-    <tbody id="notBody"></tbody>
-  </table></div>
-  <div class="cardlist" id="notCards"></div>
-</section>
+  <section class="card" id="pMine" style="display:none;margin-top:12px">
+    <div class="row"><h3>මගේ ඉල්ලීම්</h3><span class="muted" id="mineUpdated"></span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="mineBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="mineCards"></div>
+  </section>
+
+  <section class="card" id="pNot" style="display:none;margin-top:12px">
+    <div class="row"><h3>Notifications</h3><span class="muted" id="notUpdated"></span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Time</th><th>Message</th><th></th></tr></thead>
+        <tbody id="notBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="notCards"></div>
+  </section>
 </div>
 
 <script src="api.js?v=final"></script>
@@ -60,78 +67,153 @@
 <script src="ui.js?v=final"></script>
 <script src="guard.js?v=final"></script>
 <script src="auth.js?v=final"></script>
+
 <script>
-const me=requireRole(["EMPLOYEE"]);
-if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
-function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
-tick(); setInterval(tick, 10000);
+  const me = requireRole(["EMPLOYEE"]);
+  if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
+  function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
+  tick(); setInterval(tick, 10000);
+
+  // prevent ".map is not a function"
+  function asArray(x){ return Array.isArray(x) ? x : []; }
 </script>
 
 <script>
-date.value = UI.todayISO();
-function show(which){
-  pNew.style.display = which==="new" ? "block":"none";
-  pMine.style.display = which==="mine" ? "block":"none";
-  pNot.style.display = which==="not" ? "block":"none";
-  tabNew.classList.toggle("active", which==="new");
-  tabMine.classList.toggle("active", which==="mine");
-  tabNot.classList.toggle("active", which==="not");
-}
-tabNew.onclick=()=>show("new");
-tabMine.onclick=()=>{show("mine"); loadMine();};
-tabNot.onclick=()=>{show("not"); loadNotifs();};
+  date.value = UI.todayISO();
 
-async function submitReq(){
-  try{
-    const payload={date:date.value,out_time:out_time.value,in_time:in_time.value,note:note.value.trim()};
-    UI.validateLeave(payload);
-    await API.leaveRequest(payload);
-    UI.toast("Request එක යැව්වා.");
-    note.value=""; show("mine"); await loadMine();
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function appeal(id){
-  const n=prompt("අභියාචනා සටහන (ONE TIME)");
-  if(!n) return;
-  try{ await API.leaveAppeal(id, n); UI.toast("Appeal යැව්වා."); loadMine(); }
-  catch(e){ UI.toast(e.message,true); }
-}
-async function loadMine(){
-  try{
-    const list=(await API.leaveMine()).map(normLeave);
-    mineUpdated.textContent = "Last updated: "+UI.slTimeNow();
-    mineBody.innerHTML = list.map(l=>{
-      const can = canAppeal(l,"EMPLOYEE");
-      const a = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${UI.safe(fmtActual(l))}</td><td>${UI.safe(l.minutes ?? "-")}</td><td>${statusChip(l.status)}</td><td>${a}</td></tr>`;
-    }).join("");
-    mineCards.innerHTML = list.map(l=>{
-      const can = canAppeal(l,"EMPLOYEE");
-      const a = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
-      return renderLeaveCard(l, a);
-    }).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function loadNotifs(){
-  try{
-    const list=await API.notifMine();
-    notUpdated.textContent = "Last updated: "+UI.slTimeNow();
-    notBody.innerHTML = (list||[]).map(n=>{
-      const msg = UI.safe(n.message || n.text || "");
-      const t = UI.safe(n.created_at || n.time || "");
-      const btn = n.is_read ? "" : `<button class="btn" onclick="markRead('${n.id}')">Read</button>`;
-      return `<tr><td>${t}</td><td>${msg}</td><td>${btn}</td></tr>`;
-    }).join("");
-    notCards.innerHTML = (list||[]).map(n=>{
-      const msg = UI.safe(n.message || n.text || "");
-      const t = UI.safe(n.created_at || n.time || "");
-      const btn = n.is_read ? "" : `<button class="btn" onclick="markRead('${n.id}')">Read</button>`;
-      return `<div class="item"><div class="row"><b>${t}</b><span class="badge">${n.is_read?"READ":"NEW"}</span></div><div class="meta">${msg}</div><div class="actions">${btn||""}</div></div>`;
-    }).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function markRead(id){ try{ await API.notifRead(id); UI.toast("Marked as read"); loadNotifs(); }catch(e){ UI.toast(e.message,true); } }
-loadMine(); setInterval(()=>{ if(pMine.style.display!=="none") loadMine(); if(pNot.style.display!=="none") loadNotifs(); }, 15000);
+  function show(which){
+    pNew.style.display  = which==="new"  ? "block":"none";
+    pMine.style.display = which==="mine" ? "block":"none";
+    pNot.style.display  = which==="not"  ? "block":"none";
+    tabNew.classList.toggle("active", which==="new");
+    tabMine.classList.toggle("active", which==="mine");
+    tabNot.classList.toggle("active", which==="not");
+  }
+
+  tabNew.onclick  = ()=> show("new");
+  tabMine.onclick = ()=>{ show("mine"); loadMine(); };
+  tabNot.onclick  = ()=>{ show("not");  loadNotifs(); };
+
+  async function submitReq(){
+    try{
+      const payload = {
+        date: date.value,
+        out_time: out_time.value,
+        in_time: in_time.value,
+        note: note.value.trim()
+      };
+      UI.validateLeave(payload);
+
+      await API.leaveRequest(payload);
+      UI.toast("Request එක යැව්වා.");
+
+      note.value = "";
+      show("mine");
+      await loadMine();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function appeal(id){
+    const n = prompt("අභියාචනා සටහන (ONE TIME)");
+    if(!n) return;
+    try{
+      await API.leaveAppeal(id, n);
+      UI.toast("Appeal යැව්වා.");
+      loadMine();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function loadMine(){
+    try{
+      const raw = await API.leaveMine();
+      const list = asArray(raw).map(normLeave);
+
+      mineUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      mineBody.innerHTML = list.map(l=>{
+        const can = canAppeal(l,"EMPLOYEE");
+        const a = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${UI.safe(fmtActual(l))}</td>
+          <td>${UI.safe(l.minutes ?? "-")}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${a}</td>
+        </tr>`;
+      }).join("");
+
+      mineCards.innerHTML = list.map(l=>{
+        const can = canAppeal(l,"EMPLOYEE");
+        const a = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
+        return renderLeaveCard(l, a);
+      }).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      mineBody.innerHTML = "";
+      mineCards.innerHTML = "";
+      mineUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function loadNotifs(){
+    try{
+      const raw = await API.notifMine();
+      const list = asArray(raw);
+
+      notUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      notBody.innerHTML = list.map(n=>{
+        const msg = UI.safe(n.message || n.text || "");
+        const t = UI.safe(n.created_at || n.time || "");
+        const btn = n.is_read ? "" : `<button class="btn" onclick="markRead('${n.id}')">Read</button>`;
+        return `<tr><td>${t}</td><td>${msg}</td><td>${btn}</td></tr>`;
+      }).join("");
+
+      notCards.innerHTML = list.map(n=>{
+        const msg = UI.safe(n.message || n.text || "");
+        const t = UI.safe(n.created_at || n.time || "");
+        const btn = n.is_read ? "" : `<button class="btn" onclick="markRead('${n.id}')">Read</button>`;
+        return `<div class="item">
+          <div class="row"><b>${t}</b><span class="badge">${n.is_read?"READ":"NEW"}</span></div>
+          <div class="meta">${msg}</div>
+          <div class="actions">${btn||""}</div>
+        </div>`;
+      }).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      notBody.innerHTML = "";
+      notCards.innerHTML = "";
+      notUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function markRead(id){
+    try{
+      await API.notifRead(id);
+      UI.toast("Marked as read");
+      loadNotifs();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  // boot
+  loadMine();
+
+  setInterval(()=>{
+    try{
+      if(pMine.style.display!=="none") loadMine();
+      if(pNot.style.display!=="none") loadNotifs();
+    }catch(_){}
+  }, 15000);
 </script>
 
-</body></html>
+</body>
+</html>
