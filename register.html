@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="si"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register</title>
+<link rel="stylesheet" href="main.css?v=final">
+</head><body>
+<div class="container" style="padding-top:32px">
+  <div class="card" style="max-width:760px;margin:auto">
+    <h2>ලියාපදිංචි වීම</h2>
+    <div class="muted" style="margin-bottom:10px">Duplicate Emp ID / Email නම් automatic reject වේ. Approval HR/ADMIN මගින්.</div>
+    <div class="filters" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+      <div><label>Emp ID</label><input id="emp_id" type="text" placeholder="EMP001"></div>
+      <div><label>නම</label><input id="name" type="text" placeholder="සම්පූර්ණ නම"></div>
+      <div><label>Email</label><input id="email" type="email" placeholder="email@company.com"></div>
+      <div><label>Password</label><input id="password" type="password" placeholder="********"></div>
+      <div><label>Role</label>
+        <select id="role">
+          <option value="EMPLOYEE">EMPLOYEE</option>
+          <option value="HOD">HOD</option>
+        </select>
+      </div>
+      <div><label>Department</label>
+        <select id="department_id"></select>
+      </div>
+      <div class="span2 footer-actions">
+        <a class="btn" href="index.html">Back</a>
+        <button class="btn primary" onclick="submitReg()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="api.js?v=final"></script>
+<script>
+async function loadDepts(){
+  try{
+    const list=await API.departments();
+    const sel=document.getElementById('department_id');
+    sel.innerHTML = (list||[]).map(d=>`<option value="${d.id}">${UI.safe(d.name)}</option>`).join('');
+  }catch(e){ UI.toast("Departments load වෙන්නෑ.", true); }
+}
+async function submitReg(){
+  try{
+    const payload={
+      emp_id: document.getElementById('emp_id').value.trim(),
+      name: document.getElementById('name').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value,
+      role: document.getElementById('role').value,
+      department_id: document.getElementById('department_id').value
+    };
+    if(!payload.emp_id||!payload.name||!payload.email||!payload.password||!payload.department_id){
+      return UI.toast("කරුණාකර සියලුම තොරතුරු පුරවන්න.", true);
+    }
+    await API.register(payload);
+    UI.toast("Request යැව්වා. HR/ADMIN approve වුන පසු login කරන්න.");
+    setTimeout(()=>location.href="index.html", 1200);
+  }catch(e){ UI.toast(e.message||"Register දෝෂයකි.", true); }
+}
+loadDepts();
+</script>
+</body></html>
