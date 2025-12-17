@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="si"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HR</title>
-<link rel="stylesheet" href="main.css?v=final">
-</head><body>
+<html lang="si">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HR</title>
+  <link rel="stylesheet" href="main.css?v=final">
+</head>
+<body>
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -17,111 +19,296 @@
     </div>
   </div>
 </header>
+
 <div class="container">
-<div class="tabs">
-  <button class="tab active" id="tabQueue">Queue</button>
-  <button class="tab" id="tabAcc">Accounts</button>
-  <button class="tab" id="tabRep">Reports</button>
-</div>
-<section class="card" id="pQueue" style="margin-top:12px">
-  <div class="row"><h3>HR Queue</h3><span class="muted" id="qUpdated"></span></div>
-  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Status</th><th>Actions</th></tr></thead><tbody id="qBody"></tbody></table></div>
-  <div class="cardlist" id="qCards"></div>
-</section>
-<section class="card" id="pAcc" style="display:none;margin-top:12px">
-  <div class="row"><h3>Pending Accounts</h3><span class="muted" id="uUpdated"></span></div>
-  <div class="table-wrap"><table><thead><tr><th>Emp ID</th><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th></tr></thead><tbody id="uBody"></tbody></table></div>
-  <div class="cardlist" id="uCards"></div>
-</section>
-<section class="card" id="pRep" style="display:none;margin-top:12px">
-  <h3>Reports (HR)</h3>
-  <div class="filters">
-    <div class="span2"><label>From</label><input id="rf" type="date"></div>
-    <div class="span2"><label>To</label><input id="rt" type="date"></div>
-    <div><button class="btn" onclick="quick('week')">සතිය</button></div>
-    <div><button class="btn" onclick="quick('month')">මේ මාසය</button></div>
-    <div><button class="btn primary" onclick="doExport('csv')">CSV</button></div>
-    <div><button class="btn primary" onclick="doExport('excel')">Excel</button></div>
+  <div class="tabs">
+    <button class="tab active" id="tabQueue">Queue</button>
+    <button class="tab" id="tabAcc">Accounts</button>
+    <button class="tab" id="tabRep">Reports</button>
   </div>
-  <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th></tr></thead><tbody id="rBody"></tbody></table></div>
-  <div class="cardlist" id="rCards"></div>
-</section>
+
+  <!-- QUEUE -->
+  <section class="card" id="pQueue" style="margin-top:12px">
+    <div class="row">
+      <h3>HR Queue</h3>
+      <span class="muted" id="qUpdated"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="qBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="qCards"></div>
+  </section>
+
+  <!-- ACCOUNTS -->
+  <section class="card" id="pAcc" style="display:none;margin-top:12px">
+    <div class="row">
+      <h3>Pending Accounts</h3>
+      <span class="muted" id="uUpdated"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Emp ID</th><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="uBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="uCards"></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="card" id="pRep" style="display:none;margin-top:12px">
+    <h3>Reports (HR)</h3>
+    <div class="filters">
+      <div class="span2"><label>From</label><input id="rf" type="date"></div>
+      <div class="span2"><label>To</label><input id="rt" type="date"></div>
+      <div><button class="btn" onclick="quick('week')">සතිය</button></div>
+      <div><button class="btn" onclick="quick('month')">මේ මාසය</button></div>
+      <div><button class="btn primary" onclick="doExport('csv')">CSV</button></div>
+      <div><button class="btn primary" onclick="doExport('excel')">Excel</button></div>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="rBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="rCards"></div>
+  </section>
 </div>
 
+<!-- libs -->
 <script src="api.js?v=final"></script>
 <script src="mapper.js?v=final"></script>
 <script src="rules.js?v=final"></script>
 <script src="ui.js?v=final"></script>
 <script src="guard.js?v=final"></script>
 <script src="auth.js?v=final"></script>
-<script>
-const me=requireRole(["HR"]);
-if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
-function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
-tick(); setInterval(tick, 10000);
-</script>
 
 <script>
-function show(which){
-  pQueue.style.display = which==="queue" ? "block":"none";
-  pAcc.style.display = which==="acc" ? "block":"none";
-  pRep.style.display = which==="rep" ? "block":"none";
-  tabQueue.classList.toggle("active", which==="queue");
-  tabAcc.classList.toggle("active", which==="acc");
-  tabRep.classList.toggle("active", which==="rep");
-}
-tabQueue.onclick=()=>{show("queue"); loadQueue();};
-tabAcc.onclick=()=>{show("acc"); loadUsers();};
-tabRep.onclick=()=>{show("rep"); loadReport();};
+  // role guard
+  const me = requireRole(["HR"]);
+  if (me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
 
-async function loadQueue(){
-  try{
-    const list=(await API.hrQueue()).map(normLeave);
-    qUpdated.textContent="Last updated: "+UI.slTimeNow();
-    qBody.innerHTML = list.map(l=>{
-      const actions=`<button class="btn" onclick="ap('${l.id}')">Approve</button><button class="btn danger" onclick="re('${l.id}')">Reject</button>`;
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.deptName||"")}</td><td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${statusChip(l.status)}</td><td>${actions}</td></tr>`;
-    }).join("");
-    qCards.innerHTML = list.map(l=>renderLeaveCard(l, `<button class="btn" onclick="ap('${l.id}')">Approve</button><button class="btn danger" onclick="re('${l.id}')">Reject</button>`)).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function ap(id){ try{ await API.hrFinalizeApprove(id); UI.toast("අනුමත කළා."); loadQueue(); }catch(e){ UI.toast(e.message,true);} }
-async function re(id){ try{ await API.hrFinalizeReject(id); UI.toast("ප්‍රතික්ෂේප කළා.", true); loadQueue(); }catch(e){ UI.toast(e.message,true);} }
+  function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
+  tick(); setInterval(tick, 10000);
 
-async function loadUsers(){
-  try{
-    const list=(await API.pendingUsers()).map(normUser);
-    uUpdated.textContent="Last updated: "+UI.slTimeNow();
-    uBody.innerHTML = list.map(u=>{
-      const actions = (u.status==="PENDING") ? `<button class="btn" onclick="apU('${u.id}')">Approve</button><button class="btn danger" onclick="reU('${u.id}')">Reject</button>` : "";
-      return renderUserRow(u, actions);
-    }).join("");
-    uCards.innerHTML = list.map(u=>renderUserCard(u, (u.status==="PENDING")?`<button class="btn" onclick="apU('${u.id}')">Approve</button><button class="btn danger" onclick="reU('${u.id}')">Reject</button>`:"")).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function apU(id){ try{ await API.approveUser(id); UI.toast("අනුමත කළා."); loadUsers(); }catch(e){ UI.toast(e.message,true);} }
-async function reU(id){ const reason=prompt("Reject reason (optional)")||""; try{ await API.rejectUser(id, reason); UI.toast("ප්‍රතික්ෂේප කළා.", true); loadUsers(); }catch(e){ UI.toast(e.message,true);} }
+  // IMPORTANT: prevent ".map is not a function"
+  function asArray(x){ return Array.isArray(x) ? x : []; }
 
-function setRange(f,t){ rf.value=f||""; rt.value=t||""; }
-function quick(kind){ const today=UI.todayISO(); if(kind==='week'){ const d=new Date(); d.setDate(d.getDate()-7); setRange(d.toISOString().slice(0,10), today);} if(kind==='month'){ setRange(today.slice(0,8)+"01", today);} loadReport(); }
-async function loadReport(){
-  try{
-    const rows=(await API.reportHR({date_from:rf.value,date_to:rt.value})).map(normLeave);
-    rBody.innerHTML = rows.map(l=>`<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.deptName||"")}</td><td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${UI.safe(fmtActual(l))}</td><td>${UI.safe(l.minutes??"-")}</td><td>${statusChip(l.status)}</td></tr>`).join("");
-    rCards.innerHTML = rows.map(l=>renderLeaveCard(l)).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function doExport(fmt){
-  try{
-    const res=await API.export("hr", fmt, {date_from:rf.value,date_to:rt.value});
-    const blob=await res.blob(); const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download=`hr_export.${fmt==="excel"?"xlsx":"csv"}`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 1500);
-    UI.toast("Export ආරම්භ වුණා.");
-  }catch(e){ UI.toast(e.message,true); }
-}
-quick("month"); loadQueue(); loadUsers();
-setInterval(()=>{ if(pQueue.style.display!=="none") loadQueue(); if(pAcc.style.display!=="none") loadUsers(); }, 15000);
+  function show(which){
+    pQueue.style.display = which==="queue" ? "block":"none";
+    pAcc.style.display   = which==="acc"   ? "block":"none";
+    pRep.style.display   = which==="rep"   ? "block":"none";
+    tabQueue.classList.toggle("active", which==="queue");
+    tabAcc.classList.toggle("active", which==="acc");
+    tabRep.classList.toggle("active", which==="rep");
+  }
+
+  tabQueue.onclick = ()=>{ show("queue"); loadQueue(); };
+  tabAcc.onclick   = ()=>{ show("acc");   loadUsers(); };
+  tabRep.onclick   = ()=>{ show("rep");   loadReport(); };
+
+  async function loadQueue(){
+    try{
+      const raw = await API.hrQueue();
+      const list = asArray(raw).map(normLeave);
+
+      qUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      qBody.innerHTML = list.map(l=>{
+        const actions =
+          `<button class="btn" onclick="ap('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="re('${l.id}')">Reject</button>`;
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.deptName||"")}</td>
+          <td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join("");
+
+      qCards.innerHTML = list.map(l =>
+        renderLeaveCard(l,
+          `<button class="btn" onclick="ap('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="re('${l.id}')">Reject</button>`
+        )
+      ).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      qBody.innerHTML = "";
+      qCards.innerHTML = "";
+      qUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function ap(id){
+    try{
+      await API.hrFinalizeApprove(id);
+      UI.toast("අනුමත කළා.");
+      await loadQueue();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function re(id){
+    try{
+      // backend currently doesn't require reason; keep simple
+      await API.hrFinalizeReject(id);
+      UI.toast("ප්‍රතික්ෂේප කළා.", true);
+      await loadQueue();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function loadUsers(){
+    try{
+      const raw = await API.pendingUsers();
+      const list = asArray(raw).map(normUser);
+
+      uUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      uBody.innerHTML = list.map(u=>{
+        const actions = (u.status==="PENDING")
+          ? `<button class="btn" onclick="apU('${u.id}')">Approve</button>
+             <button class="btn danger" onclick="reU('${u.id}')">Reject</button>`
+          : "";
+        return renderUserRow(u, actions);
+      }).join("");
+
+      uCards.innerHTML = list.map(u =>
+        renderUserCard(u,
+          (u.status==="PENDING")
+            ? `<button class="btn" onclick="apU('${u.id}')">Approve</button>
+               <button class="btn danger" onclick="reU('${u.id}')">Reject</button>`
+            : ""
+        )
+      ).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      uBody.innerHTML = "";
+      uCards.innerHTML = "";
+      uUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function apU(id){
+    try{
+      await API.approveUser(id);
+      UI.toast("අනුමත කළා.");
+      await loadUsers();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function reU(id){
+    const reason = prompt("Reject reason (optional)") || "";
+    try{
+      await API.rejectUser(id, reason);
+      UI.toast("ප්‍රතික්ෂේප කළා.", true);
+      await loadUsers();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  function setRange(f,t){ rf.value = f || ""; rt.value = t || ""; }
+
+  function quick(kind){
+    const today = UI.todayISO();
+
+    if (kind === 'week') {
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      setRange(d.toISOString().slice(0,10), today);
+    }
+
+    if (kind === 'month') {
+      setRange(today.slice(0,8) + "01", today);
+    }
+
+    loadReport();
+  }
+
+  async function loadReport(){
+    try{
+      const raw = await API.reportHR({ date_from: rf.value, date_to: rt.value });
+      const rows = asArray(raw).map(normLeave);
+
+      rBody.innerHTML = rows.map(l => `
+        <tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.deptName||"")}</td>
+          <td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${UI.safe(fmtActual(l))}</td>
+          <td>${UI.safe(l.minutes ?? "-")}</td>
+          <td>${statusChip(l.status)}</td>
+        </tr>
+      `).join("");
+
+      rCards.innerHTML = rows.map(l => renderLeaveCard(l)).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      rBody.innerHTML = "";
+      rCards.innerHTML = "";
+    }
+  }
+
+  async function doExport(fmt){
+    try{
+      const res = await API.export("hr", fmt, { date_from: rf.value, date_to: rt.value });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `hr_export.${fmt==="excel" ? "xlsx" : "csv"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+      UI.toast("Export ආරම්භ වුණා.");
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  // boot
+  quick("month");
+  loadQueue();
+  loadUsers();
+
+  // auto refresh when visible
+  setInterval(()=>{
+    try{
+      if (pQueue.style.display !== "none") loadQueue();
+      if (pAcc.style.display !== "none") loadUsers();
+    }catch(_){}
+  }, 15000);
 </script>
 
-</body></html>
+</body>
+</html>
