@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="si"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HOD</title>
-<link rel="stylesheet" href="main.css?v=final">
-</head><body>
+<html lang="si">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HOD</title>
+  <link rel="stylesheet" href="main.css?v=final">
+</head>
+<body>
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -17,27 +19,97 @@
     </div>
   </div>
 </header>
+
 <div class="container">
-<div class="tabs">
-  <button class="tab active" id="tabPend">Department Pending</button>
-  <button class="tab" id="tabMine">My Requests</button>
-</div>
-<section class="card" id="pPend" style="margin-top:12px">
-  <div class="row"><h3>Pending Requests (Dept)</h3><span class="muted" id="pendUpdated"></span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Date</th><th>Emp</th><th>Planned</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody id="pendBody"></tbody>
-  </table></div>
-  <div class="cardlist" id="pendCards"></div>
-</section>
-<section class="card" id="pMine" style="display:none;margin-top:12px">
-  <div class="row"><h3>මගේ Leave</h3><span class="muted" id="mineUpdated"></span></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Date</th><th>Planned</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody id="mineBody"></tbody>
-  </table></div>
-  <div class="cardlist" id="mineCards"></div>
-</section>
+
+  <div class="tabs">
+    <button class="tab active" id="tabPend">Department Pending</button>
+    <button class="tab" id="tabNew">My Leave Request</button>
+    <button class="tab" id="tabMine">My Requests</button>
+  </div>
+
+  <!-- Dept Pending -->
+  <section class="card" id="pPend" style="margin-top:12px">
+    <div class="row">
+      <h3>Pending Requests (Dept)</h3>
+      <span class="muted" id="pendUpdated"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th>Emp</th>
+          <th>Planned</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="pendBody"></tbody>
+      </table>
+    </div>
+
+    <div class="cardlist" id="pendCards"></div>
+  </section>
+
+  <!-- HOD New Request -->
+  <section class="card" id="pNew" style="display:none;margin-top:12px">
+    <h3>මගේ Leave ඉල්ලීම (HOD)</h3>
+
+    <div class="filters" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+      <div>
+        <label>Date</label>
+        <input id="h_date" type="date">
+      </div>
+      <div>
+        <label>OUT</label>
+        <input id="h_out" type="time">
+      </div>
+      <div>
+        <label>IN</label>
+        <input id="h_in" type="time">
+      </div>
+      <div class="span2">
+        <label>Note</label>
+        <input id="h_note" type="text" placeholder="හේතුව">
+      </div>
+      <div>
+        <button class="btn primary" onclick="submitHodReq()">Submit</button>
+      </div>
+    </div>
+
+    <div class="muted" style="margin-top:8px">
+      HOD ඉල්ලීම් ADMIN වෙත යයි (PENDING_ADMIN) → ADMIN decision → HR finalize.
+    </div>
+  </section>
+
+  <!-- My Requests -->
+  <section class="card" id="pMine" style="display:none;margin-top:12px">
+    <div class="row">
+      <h3>මගේ Leave</h3>
+      <span class="muted" id="mineUpdated"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+        <tr>
+          <th>Date</th>
+          <th>Planned</th>
+          <th>Actual</th>
+          <th>Minutes</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="mineBody"></tbody>
+      </table>
+    </div>
+
+    <div class="cardlist" id="mineCards"></div>
+  </section>
+
 </div>
 
 <script src="api.js?v=final"></script>
@@ -46,67 +118,151 @@
 <script src="ui.js?v=final"></script>
 <script src="guard.js?v=final"></script>
 <script src="auth.js?v=final"></script>
-<script>
-const me=requireRole(["HOD"]);
-if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
-function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
-tick(); setInterval(tick, 10000);
-</script>
 
 <script>
-function show(which){
-  pPend.style.display = which==="pend" ? "block":"none";
-  pMine.style.display = which==="mine" ? "block":"none";
-  tabPend.classList.toggle("active", which==="pend");
-  tabMine.classList.toggle("active", which==="mine");
-}
-tabPend.onclick=()=>{show("pend"); loadPending();};
-tabMine.onclick=()=>{show("mine"); loadMine();};
+  const me = requireRole(["HOD"]);
+  if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
 
-async function loadPending(){
-  try{
-    const list=(await API.hodPending()).map(normLeave);
-    pendUpdated.textContent="Last updated: "+UI.slTimeNow();
-    pendBody.innerHTML = list.map(l=>{
-      const actions = `<button class="btn" onclick="approve('${l.id}')">Approve</button>
-                       <button class="btn danger" onclick="reject('${l.id}')">Reject</button>`;
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.empName||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${statusChip(l.status)}</td><td>${actions}</td></tr>`;
-    }).join("");
-    pendCards.innerHTML = list.map(l=>{
-      const actions = `<button class="btn" onclick="approve('${l.id}')">Approve</button>
-                       <button class="btn danger" onclick="reject('${l.id}')">Reject</button>`;
-      return renderLeaveCard(l, actions);
-    }).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function approve(id){ try{ await API.hodApprove(id); UI.toast("අනුමත කළා."); loadPending(); }catch(e){ UI.toast(e.message,true);} }
-async function reject(id){
-  const reason=prompt("ප්‍රතික්ෂේප හේතුව (optional)")||"";
-  try{ await API.hodReject(id, reason); UI.toast("ප්‍රතික්ෂේප කළා.", true); loadPending(); }catch(e){ UI.toast(e.message,true);} 
-}
-async function loadMine(){
-  try{
-    const list=(await API.leaveMine()).map(normLeave);
-    mineUpdated.textContent="Last updated: "+UI.slTimeNow();
-    mineBody.innerHTML = list.map(l=>{
-      const can = canAppeal(l,"HOD");
-      const act = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>`:"";
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${statusChip(l.status)}</td><td>${act}</td></tr>`;
-    }).join("");
-    mineCards.innerHTML = list.map(l=>{
-      const can = canAppeal(l,"HOD");
-      const act = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>`:"";
-      return renderLeaveCard(l, act);
-    }).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function appeal(id){
-  const n=prompt("අභියාචනා සටහන (ONE TIME)");
-  if(!n) return;
-  try{ await API.leaveAppeal(id, n); UI.toast("Appeal යැව්වා."); loadMine(); }
-  catch(e){ UI.toast(e.message,true); }
-}
-loadPending(); loadMine(); setInterval(()=>{ if(pPend.style.display!=="none") loadPending(); if(pMine.style.display!=="none") loadMine(); }, 15000);
+  function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
+  tick(); setInterval(tick, 10000);
+
+  // default date
+  h_date.value = UI.todayISO();
+
+  function show(which){
+    pPend.style.display = which==="pend" ? "block" : "none";
+    pNew.style.display  = which==="new"  ? "block" : "none";
+    pMine.style.display = which==="mine" ? "block" : "none";
+
+    tabPend.classList.toggle("active", which==="pend");
+    tabNew.classList.toggle("active", which==="new");
+    tabMine.classList.toggle("active", which==="mine");
+  }
+
+  tabPend.onclick = ()=>{ show("pend"); loadPending(); };
+  tabNew.onclick  = ()=>{ show("new"); };
+  tabMine.onclick = ()=>{ show("mine"); loadMine(); };
+
+  async function loadPending(){
+    try{
+      const list = (await API.hodPending()).map(normLeave);
+      pendUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      pendBody.innerHTML = list.map(l=>{
+        const actions =
+          `<button class="btn" onclick="approve('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="reject('${l.id}')">Reject</button>`;
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.empName||"")} <span class="muted">(${UI.safe(l.empId||"")})</span></td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join("");
+
+      pendCards.innerHTML = list.map(l=>{
+        const actions =
+          `<button class="btn" onclick="approve('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="reject('${l.id}')">Reject</button>`;
+        return renderLeaveCard(l, actions);
+      }).join("");
+
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  async function approve(id){
+    try{
+      await API.hodApprove(id);
+      UI.toast("අනුමත කළා.");
+      loadPending();
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  async function reject(id){
+    const reason = prompt("ප්‍රතික්ෂේප හේතුව (optional)") || "";
+    try{
+      await API.hodReject(id, reason);
+      UI.toast("ප්‍රතික්ෂේප කළා.", true);
+      loadPending();
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  async function submitHodReq(){
+    try{
+      const payload = {
+        date: h_date.value,
+        out_time: h_out.value,
+        in_time: h_in.value,
+        note: (h_note.value||"").trim()
+      };
+      UI.validateLeave(payload);
+
+      await API.leaveRequest(payload); // role=HOD -> backend makes PENDING_ADMIN
+      UI.toast("HOD leave ඉල්ලීම යවලා තියෙනවා. Admin review බලාපොරොත්තුයි.");
+      h_note.value = "";
+      show("mine");
+      await loadMine();
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  async function loadMine(){
+    try{
+      const list = (await API.leaveMine()).map(normLeave);
+      mineUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      mineBody.innerHTML = list.map(l=>{
+        const can = canAppeal(l, "HOD");
+        const act = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${UI.safe(fmtActual(l))}</td>
+          <td>${UI.safe(l.minutes ?? "-")}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${act}</td>
+        </tr>`;
+      }).join("");
+
+      mineCards.innerHTML = list.map(l=>{
+        const can = canAppeal(l, "HOD");
+        const act = can ? `<button class="btn" onclick="appeal('${l.id}')">Appeal</button>` : "";
+        return renderLeaveCard(l, act);
+      }).join("");
+
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  async function appeal(id){
+    const n = prompt("අභියාචනා සටහන (ONE TIME)");
+    if(!n) return;
+    try{
+      await API.leaveAppeal(id, n);
+      UI.toast("Appeal යැව්වා.");
+      loadMine();
+    }catch(e){
+      UI.toast(e.message, true);
+    }
+  }
+
+  // initial loads + auto refresh
+  loadPending();
+  loadMine();
+  setInterval(()=>{
+    if(pPend.style.display !== "none") loadPending();
+    if(pMine.style.display !== "none") loadMine();
+  }, 15000);
 </script>
 
-</body></html>
+</body>
+</html>
