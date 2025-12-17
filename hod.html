@@ -126,6 +126,9 @@
   function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
   tick(); setInterval(tick, 10000);
 
+  // prevent ".map is not a function"
+  function asArray(x){ return Array.isArray(x) ? x : []; }
+
   // default date
   h_date.value = UI.todayISO();
 
@@ -145,7 +148,9 @@
 
   async function loadPending(){
     try{
-      const list = (await API.hodPending()).map(normLeave);
+      const raw = await API.hodPending();
+      const list = asArray(raw).map(normLeave);
+
       pendUpdated.textContent = "Last updated: " + UI.slTimeNow();
 
       pendBody.innerHTML = list.map(l=>{
@@ -169,7 +174,10 @@
       }).join("");
 
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
+      pendBody.innerHTML = "";
+      pendCards.innerHTML = "";
+      pendUpdated.textContent = "Last updated: -";
     }
   }
 
@@ -177,9 +185,9 @@
     try{
       await API.hodApprove(id);
       UI.toast("අනුමත කළා.");
-      loadPending();
+      await loadPending();
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
     }
   }
 
@@ -188,9 +196,9 @@
     try{
       await API.hodReject(id, reason);
       UI.toast("ප්‍රතික්ෂේප කළා.", true);
-      loadPending();
+      await loadPending();
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
     }
   }
 
@@ -210,13 +218,15 @@
       show("mine");
       await loadMine();
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
     }
   }
 
   async function loadMine(){
     try{
-      const list = (await API.leaveMine()).map(normLeave);
+      const raw = await API.leaveMine();
+      const list = asArray(raw).map(normLeave);
+
       mineUpdated.textContent = "Last updated: " + UI.slTimeNow();
 
       mineBody.innerHTML = list.map(l=>{
@@ -239,7 +249,10 @@
       }).join("");
 
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
+      mineBody.innerHTML = "";
+      mineCards.innerHTML = "";
+      mineUpdated.textContent = "Last updated: -";
     }
   }
 
@@ -251,7 +264,7 @@
       UI.toast("Appeal යැව්වා.");
       loadMine();
     }catch(e){
-      UI.toast(e.message, true);
+      UI.toast(UI.humanError(e), true);
     }
   }
 
@@ -259,8 +272,10 @@
   loadPending();
   loadMine();
   setInterval(()=>{
-    if(pPend.style.display !== "none") loadPending();
-    if(pMine.style.display !== "none") loadMine();
+    try{
+      if(pPend.style.display !== "none") loadPending();
+      if(pMine.style.display !== "none") loadMine();
+    }catch(_){}
   }, 15000);
 </script>
 
