@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="si"><head>
+<html lang="si">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADMIN</title>
 <link rel="stylesheet" href="main.css?v=final">
-</head><body>
+</head>
+<body>
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -17,36 +19,64 @@
     </div>
   </div>
 </header>
+
 <div class="container">
-<div class="tabs">
-  <button class="tab active" id="tabAp">Appeals</button>
-  <button class="tab" id="tabAcc">Accounts</button>
-  <button class="tab" id="tabRep">Reports</button>
-</div>
-<section class="card" id="pAp" style="margin-top:12px">
-  <div class="row"><h3>Appeals (Pending)</h3><span class="muted" id="apUpdated"></span></div>
-  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Dept</th><th>Emp</th><th>Appeal Note</th><th>Actions</th></tr></thead><tbody id="apBody"></tbody></table></div>
-  <div class="cardlist" id="apCards"></div>
-</section>
-<section class="card" id="pAcc" style="display:none;margin-top:12px">
-  <div class="row"><h3>Pending Accounts</h3><span class="muted" id="uUpdated"></span></div>
-  <div class="table-wrap"><table><thead><tr><th>Emp ID</th><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th></tr></thead><tbody id="uBody"></tbody></table></div>
-  <div class="cardlist" id="uCards"></div>
-</section>
-<section class="card" id="pRep" style="display:none;margin-top:12px">
-  <h3>Reports (Admin)</h3>
-  <div class="filters">
-    <div class="span2"><label>From</label><input id="rf" type="date"></div>
-    <div class="span2"><label>To</label><input id="rt" type="date"></div>
-    <div><button class="btn" onclick="quick('week')">සතිය</button></div>
-    <div><button class="btn" onclick="quick('month')">මේ මාසය</button></div>
-    <div><button class="btn" onclick="quick('year')">මේ වසර</button></div>
-    <div><button class="btn primary" onclick="doExport('csv')">CSV</button></div>
-    <div><button class="btn primary" onclick="doExport('excel')">Excel</button></div>
+  <div class="tabs">
+    <button class="tab active" id="tabAp">Appeals</button>
+    <button class="tab" id="tabAcc">Accounts</button>
+    <button class="tab" id="tabRep">Reports</button>
   </div>
-  <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th><th>Close</th></tr></thead><tbody id="rBody"></tbody></table></div>
-  <div class="cardlist" id="rCards"></div>
-</section>
+
+  <!-- Appeals -->
+  <section class="card" id="pAp" style="margin-top:12px">
+    <div class="row"><h3>Appeals (Pending)</h3><span class="muted" id="apUpdated"></span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Dept</th><th>Emp</th><th>Appeal Note</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="apBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="apCards"></div>
+  </section>
+
+  <!-- Accounts -->
+  <section class="card" id="pAcc" style="display:none;margin-top:12px">
+    <div class="row"><h3>Pending Accounts</h3><span class="muted" id="uUpdated"></span></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Emp ID</th><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="uBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="uCards"></div>
+  </section>
+
+  <!-- Reports -->
+  <section class="card" id="pRep" style="display:none;margin-top:12px">
+    <h3>Reports (Admin)</h3>
+    <div class="filters">
+      <div class="span2"><label>From</label><input id="rf" type="date"></div>
+      <div class="span2"><label>To</label><input id="rt" type="date"></div>
+      <div><button class="btn" onclick="quick('week')">සතිය</button></div>
+      <div><button class="btn" onclick="quick('month')">මේ මාසය</button></div>
+      <div><button class="btn" onclick="quick('year')">මේ වසර</button></div>
+      <div><button class="btn primary" onclick="doExport('csv')">CSV</button></div>
+      <div><button class="btn primary" onclick="doExport('excel')">Excel</button></div>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Minutes</th><th>Status</th><th>Close</th></tr>
+        </thead>
+        <tbody id="rBody"></tbody>
+      </table>
+    </div>
+    <div class="cardlist" id="rCards"></div>
+  </section>
 </div>
 
 <script src="api.js?v=final"></script>
@@ -55,74 +85,215 @@
 <script src="ui.js?v=final"></script>
 <script src="guard.js?v=final"></script>
 <script src="auth.js?v=final"></script>
+
 <script>
-const me=requireRole(["ADMIN"]);
-if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
-function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
-tick(); setInterval(tick, 10000);
+  const me = requireRole(["ADMIN"]);
+  if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
+  function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
+  tick(); setInterval(tick, 10000);
+
+  // prevent ".map is not a function"
+  function asArray(x){ return Array.isArray(x) ? x : []; }
 </script>
 
 <script>
-function show(which){
-  pAp.style.display = which==="ap" ? "block":"none";
-  pAcc.style.display = which==="acc" ? "block":"none";
-  pRep.style.display = which==="rep" ? "block":"none";
-  tabAp.classList.toggle("active", which==="ap");
-  tabAcc.classList.toggle("active", which==="acc");
-  tabRep.classList.toggle("active", which==="rep");
-}
-tabAp.onclick=()=>{show("ap"); loadAppeals();};
-tabAcc.onclick=()=>{show("acc"); loadUsers();};
-tabRep.onclick=()=>{show("rep"); loadRep();};
+  function show(which){
+    pAp.style.display  = which==="ap"  ? "block":"none";
+    pAcc.style.display = which==="acc" ? "block":"none";
+    pRep.style.display = which==="rep" ? "block":"none";
+    tabAp.classList.toggle("active", which==="ap");
+    tabAcc.classList.toggle("active", which==="acc");
+    tabRep.classList.toggle("active", which==="rep");
+  }
+  tabAp.onclick  = ()=>{ show("ap");  loadAppeals(); };
+  tabAcc.onclick = ()=>{ show("acc"); loadUsers(); };
+  tabRep.onclick = ()=>{ show("rep"); loadRep(); };
 
-async function loadAppeals(){
-  try{
-    const rows=(await API.adminAppeals()).map(normLeave);
-    apUpdated.textContent="Last updated: "+UI.slTimeNow();
-    apBody.innerHTML = rows.map(l=>{
-      const actions=`<button class="btn" onclick="apOk('${l.id}')">Approve</button><button class="btn danger" onclick="apNo('${l.id}')">Reject</button>`;
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.deptName||"")}</td><td>${UI.safe(l.empName||"")}</td><td>${UI.safe(l.appealNote||"")}</td><td>${actions}</td></tr>`;
-    }).join("");
-    apCards.innerHTML = rows.map(l=>renderLeaveCard(l, `<button class="btn" onclick="apOk('${l.id}')">Approve</button><button class="btn danger" onclick="apNo('${l.id}')">Reject</button>`)).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function apOk(id){ try{ await API.adminAppealApprove(id); UI.toast("Appeal approved"); loadAppeals(); }catch(e){ UI.toast(e.message,true);} }
-async function apNo(id){ try{ await API.adminAppealReject(id); UI.toast("Appeal rejected", true); loadAppeals(); }catch(e){ UI.toast(e.message,true);} }
+  async function loadAppeals(){
+    try{
+      const raw = await API.adminAppeals();
+      const rows = asArray(raw).map(normLeave);
 
-async function loadUsers(){
-  try{
-    const list=(await API.pendingUsers()).map(normUser);
-    uUpdated.textContent="Last updated: "+UI.slTimeNow();
-    uBody.innerHTML = list.map(u=>{
-      const actions = (u.status==="PENDING") ? `<button class="btn" onclick="apU('${u.id}')">Approve</button><button class="btn danger" onclick="reU('${u.id}')">Reject</button>` : "";
-      return renderUserRow(u, actions);
-    }).join("");
-    uCards.innerHTML = list.map(u=>renderUserCard(u, (u.status==="PENDING")?`<button class="btn" onclick="apU('${u.id}')">Approve</button><button class="btn danger" onclick="reU('${u.id}')">Reject</button>`:"")).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function apU(id){ try{ await API.approveUser(id); UI.toast("අනුමත කළා."); loadUsers(); }catch(e){ UI.toast(e.message,true);} }
-async function reU(id){ const reason=prompt("Reject reason (optional)")||""; try{ await API.rejectUser(id, reason); UI.toast("ප්‍රතික්ෂේප කළා.", true); loadUsers(); }catch(e){ UI.toast(e.message,true);} }
+      apUpdated.textContent = "Last updated: " + UI.slTimeNow();
 
-function setRange(f,t){ rf.value=f||""; rt.value=t||""; }
-function quick(kind){ const today=UI.todayISO(); if(kind==='week'){ const d=new Date(); d.setDate(d.getDate()-7); setRange(d.toISOString().slice(0,10), today);} if(kind==='month'){ setRange(today.slice(0,8)+"01", today);} if(kind==='year'){ setRange(today.slice(0,4)+"-01-01", today);} loadRep(); }
-async function loadRep(){
-  try{
-    const rows=(await API.reportADMIN({date_from:rf.value,date_to:rt.value})).map(normLeave);
-    rBody.innerHTML = rows.map(l=>`<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.deptName||"")}</td><td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${UI.safe(fmtActual(l))}</td><td>${UI.safe(l.minutes??"-")}</td><td>${statusChip(l.status)}</td><td>${UI.safe(l.closeType||"-")}</td></tr>`).join("");
-    rCards.innerHTML = rows.map(l=>renderLeaveCard(l)).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function doExport(fmt){
-  try{
-    const res=await API.export("admin", fmt, {date_from:rf.value,date_to:rt.value});
-    const blob=await res.blob(); const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download=`admin_export.${fmt==="excel"?"xlsx":"csv"}`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 1500);
-    UI.toast("Export ආරම්භ වුණා.");
-  }catch(e){ UI.toast(e.message,true); }
-}
-quick("month"); loadAppeals(); loadUsers();
-setInterval(()=>{ if(pAp.style.display!=="none") loadAppeals(); if(pAcc.style.display!=="none") loadUsers(); }, 15000);
+      apBody.innerHTML = rows.map(l=>{
+        const actions =
+          `<button class="btn" onclick="apOk('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="apNo('${l.id}')">Reject</button>`;
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.deptName||"")}</td>
+          <td>${UI.safe(l.empName||"")}</td>
+          <td>${UI.safe(l.appealNote||"")}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join("");
+
+      apCards.innerHTML = rows.map(l =>
+        renderLeaveCard(l,
+          `<button class="btn" onclick="apOk('${l.id}')">Approve</button>
+           <button class="btn danger" onclick="apNo('${l.id}')">Reject</button>`
+        )
+      ).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      apBody.innerHTML = "";
+      apCards.innerHTML = "";
+      apUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function apOk(id){
+    try{
+      await API.adminAppealApprove(id);
+      UI.toast("Appeal approved");
+      await loadAppeals();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function apNo(id){
+    try{
+      await API.adminAppealReject(id);
+      UI.toast("Appeal rejected", true);
+      await loadAppeals();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function loadUsers(){
+    try{
+      const raw = await API.pendingUsers();
+      const list = asArray(raw).map(normUser);
+
+      uUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      uBody.innerHTML = list.map(u=>{
+        const actions = (u.status==="PENDING")
+          ? `<button class="btn" onclick="apU('${u.id}')">Approve</button>
+             <button class="btn danger" onclick="reU('${u.id}')">Reject</button>`
+          : "";
+        return renderUserRow(u, actions);
+      }).join("");
+
+      uCards.innerHTML = list.map(u =>
+        renderUserCard(u,
+          (u.status==="PENDING")
+            ? `<button class="btn" onclick="apU('${u.id}')">Approve</button>
+               <button class="btn danger" onclick="reU('${u.id}')">Reject</button>`
+            : ""
+        )
+      ).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      uBody.innerHTML = "";
+      uCards.innerHTML = "";
+      uUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function apU(id){
+    try{
+      await API.approveUser(id);
+      UI.toast("අනුමත කළා.");
+      await loadUsers();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function reU(id){
+    const reason = prompt("Reject reason (optional)") || "";
+    try{
+      await API.rejectUser(id, reason);
+      UI.toast("ප්‍රතික්ෂේප කළා.", true);
+      await loadUsers();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  function setRange(f,t){ rf.value=f||""; rt.value=t||""; }
+
+  function quick(kind){
+    const today = UI.todayISO();
+
+    if(kind==='week'){
+      const d=new Date(); d.setDate(d.getDate()-7);
+      setRange(d.toISOString().slice(0,10), today);
+    }
+    if(kind==='month'){
+      setRange(today.slice(0,8)+"01", today);
+    }
+    if(kind==='year'){
+      setRange(today.slice(0,4)+"-01-01", today);
+    }
+    loadRep();
+  }
+
+  async function loadRep(){
+    try{
+      const raw = await API.reportADMIN({ date_from: rf.value, date_to: rt.value });
+      const rows = asArray(raw).map(normLeave);
+
+      rBody.innerHTML = rows.map(l=>`
+        <tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.deptName||"")}</td>
+          <td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${UI.safe(fmtActual(l))}</td>
+          <td>${UI.safe(l.minutes??"-")}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${UI.safe(l.closeType||"-")}</td>
+        </tr>
+      `).join("");
+
+      rCards.innerHTML = rows.map(l=>renderLeaveCard(l)).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      rBody.innerHTML = "";
+      rCards.innerHTML = "";
+    }
+  }
+
+  async function doExport(fmt){
+    try{
+      const res = await API.export("admin", fmt, { date_from: rf.value, date_to: rt.value });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a=document.createElement("a");
+      a.href=url;
+      a.download=`admin_export.${fmt==="excel"?"xlsx":"csv"}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+
+      UI.toast("Export ආරම්භ වුණා.");
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  // boot
+  quick("month");
+  loadAppeals();
+  loadUsers();
+
+  setInterval(()=>{
+    try{
+      if(pAp.style.display!=="none") loadAppeals();
+      if(pAcc.style.display!=="none") loadUsers();
+    }catch(_){}
+  }, 15000);
 </script>
 
-</body></html>
+</body>
+</html>
