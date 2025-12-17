@@ -1,10 +1,12 @@
 <!doctype html>
-<html lang="si"><head>
+<html lang="si">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SECURITY</title>
 <link rel="stylesheet" href="main.css?v=final">
-</head><body>
+</head>
+<body>
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -17,13 +19,27 @@
     </div>
   </div>
 </header>
+
 <div class="container">
-<section class="card" style="margin-top:12px">
-  <div class="row"><h3>Security Pending</h3><span class="muted" id="sUpdated"></span></div>
-  <div class="muted" style="margin-bottom:8px">Security approves නෙවෙයි. OUT/IN confirm පමණයි. Sri Lanka time.</div>
-  <div class="table-wrap"><table><thead><tr><th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sBody"></tbody></table></div>
-  <div class="cardlist" id="sCards"></div>
-</section>
+  <section class="card" style="margin-top:12px">
+    <div class="row"><h3>Security Pending</h3><span class="muted" id="sUpdated"></span></div>
+    <div class="muted" style="margin-bottom:8px">
+      Security approves නෙවෙයි. OUT/IN confirm පමණයි. Sri Lanka time.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Dept</th><th>Emp</th><th>Planned</th><th>Actual</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sBody"></tbody>
+      </table>
+    </div>
+
+    <div class="cardlist" id="sCards"></div>
+  </section>
 </div>
 
 <script src="api.js?v=final"></script>
@@ -32,28 +48,80 @@
 <script src="ui.js?v=final"></script>
 <script src="guard.js?v=final"></script>
 <script src="auth.js?v=final"></script>
+
 <script>
-const me=requireRole(["SECURITY"]);
-if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
-function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
-tick(); setInterval(tick, 10000);
+  const me = requireRole(["SECURITY"]);
+  if(me) document.getElementById('subline').textContent = "Role: " + String(me.role||"").toUpperCase();
+  function tick(){ document.getElementById('clock').textContent = 'SL: ' + UI.slTimeNow(); }
+  tick(); setInterval(tick, 10000);
+
+  // prevent ".map is not a function"
+  function asArray(x){ return Array.isArray(x) ? x : []; }
 </script>
 
 <script>
-async function loadSec(){
-  try{
-    const list=(await API.secPending()).map(normLeave);
-    sUpdated.textContent="Last updated: "+UI.slTimeNow();
-    sBody.innerHTML = list.map(l=>{
-      const actions = `<button class="btn" onclick="outC('${l.id}')">Confirm OUT</button><button class="btn" onclick="inC('${l.id}')">Confirm IN</button>`;
-      return `<tr><td>${UI.safe(l.date||"")}</td><td>${UI.safe(l.deptName||"")}</td><td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td><td>${UI.safe(fmtPlanned(l))}</td><td>${UI.safe(fmtActual(l))}</td><td>${statusChip(l.status)}</td><td>${actions}</td></tr>`;
-    }).join("");
-    sCards.innerHTML = list.map(l=>renderLeaveCard(l, `<button class="btn" onclick="outC('${l.id}')">OUT</button><button class="btn" onclick="inC('${l.id}')">IN</button>`)).join("");
-  }catch(e){ UI.toast(e.message,true); }
-}
-async function outC(id){ if(!confirm("OUT confirm කරන්නද?")) return; try{ await API.secOut(id); UI.toast("OUT confirm වුණා."); loadSec(); }catch(e){ UI.toast(e.message,true); } }
-async function inC(id){ if(!confirm("IN confirm කරන්නද?")) return; try{ await API.secIn(id); UI.toast("IN confirm වුණා."); loadSec(); }catch(e){ UI.toast(e.message,true); } }
-loadSec(); setInterval(loadSec, 15000);
+  async function loadSec(){
+    try{
+      const raw = await API.secPending();
+      const list = asArray(raw).map(normLeave);
+
+      sUpdated.textContent = "Last updated: " + UI.slTimeNow();
+
+      sBody.innerHTML = list.map(l=>{
+        const actions =
+          `<button class="btn" onclick="outC('${l.id}')">Confirm OUT</button>
+           <button class="btn" onclick="inC('${l.id}')">Confirm IN</button>`;
+        return `<tr>
+          <td>${UI.safe(l.date||"")}</td>
+          <td>${UI.safe(l.deptName||"")}</td>
+          <td>${UI.safe(l.empId||"")} ${UI.safe(l.empName||"")}</td>
+          <td>${UI.safe(fmtPlanned(l))}</td>
+          <td>${UI.safe(fmtActual(l))}</td>
+          <td>${statusChip(l.status)}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join("");
+
+      sCards.innerHTML = list.map(l =>
+        renderLeaveCard(l,
+          `<button class="btn" onclick="outC('${l.id}')">OUT</button>
+           <button class="btn" onclick="inC('${l.id}')">IN</button>`
+        )
+      ).join("");
+
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+      sBody.innerHTML = "";
+      sCards.innerHTML = "";
+      sUpdated.textContent = "Last updated: -";
+    }
+  }
+
+  async function outC(id){
+    if(!confirm("OUT confirm කරන්නද?")) return;
+    try{
+      await API.secOut(id);
+      UI.toast("OUT confirm වුණා.");
+      loadSec();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  async function inC(id){
+    if(!confirm("IN confirm කරන්නද?")) return;
+    try{
+      await API.secIn(id);
+      UI.toast("IN confirm වුණා.");
+      loadSec();
+    }catch(e){
+      UI.toast(UI.humanError(e), true);
+    }
+  }
+
+  loadSec();
+  setInterval(loadSec, 15000);
 </script>
 
-</body></html>
+</body>
+</html>
